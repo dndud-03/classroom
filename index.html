@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>자리 배정 프로그램</title>
+
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f4f6f8;
+        padding: 20px;
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .container {
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    input, textarea, button {
+        width: 100%;
+        margin: 6px 0;
+        padding: 8px;
+        box-sizing: border-box;
+    }
+
+    button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #43a047;
+    }
+
+    table {
+        margin: 20px auto;
+        border-collapse: collapse;
+    }
+
+    td {
+        border: 1px solid #333;
+        padding: 12px;
+        min-width: 80px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .front {
+        background-color: #fff3cd; /* 앞자리 색 */
+    }
+</style>
+</head>
+
+<body>
+
+<h2>🎲 랜덤 자리 배정</h2>
+
+<div class="container">
+    학생 수
+    <input type="number" id="numStudents">
+
+    자리 행
+    <input type="number" id="rows">
+
+    자리 열
+    <input type="number" id="cols">
+
+    <h4>🔒 고정 자리 (선택)</h4>
+    <p style="font-size:14px;">형식: 학생번호,행,열<br>예: 1,1,2</p>
+    <textarea id="fixedSeats" rows="4"></textarea>
+
+    <button onclick="assignSeats()">자리 배정</button>
+    <button onclick="assignSeats()">🔁 다시 섞기</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
+function assignSeats() {
+    const numStudents = Number(document.getElementById("numStudents").value);
+    const rows = Number(document.getElementById("rows").value);
+    const cols = Number(document.getElementById("cols").value);
+
+    if (rows * cols < numStudents) {
+        alert("자리가 부족합니다.");
+        return;
+    }
+
+    let students = [];
+    for (let i = 1; i <= numStudents; i++) {
+        students.push("학생" + i);
+    }
+
+    let seats = Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => "빈자리")
+    );
+
+    const fixedInput = document.getElementById("fixedSeats").value.trim();
+    if (fixedInput !== "") {
+        fixedInput.split("\n").forEach(line => {
+            const [num, r, c] = line.split(",").map(x => x.trim());
+            const name = "학생" + num;
+            seats[r - 1][c - 1] = name;
+            students = students.filter(s => s !== name);
+        });
+    }
+
+    shuffle(students);
+
+    let idx = 0;
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (seats[r][c] === "빈자리" && idx < students.length) {
+                seats[r][c] = students[idx++];
+            }
+        }
+    }
+
+    let html = "<table>";
+    seats.forEach((row, r) => {
+        html += "<tr>";
+        row.forEach(seat => {
+            const cls = r === 0 ? "front" : "";
+            html += `<td class="${cls}">${seat}</td>`;
+        });
+        html += "</tr>";
+    });
+    html += "</table>";
+
+    document.getElementById("result").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
